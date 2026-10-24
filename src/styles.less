@@ -272,10 +272,16 @@ md-toolbar.tw-toolbar {
   width: 34px;
   height: 34px;
   flex-shrink: 0;
-  border-radius: 9px;
-  display: block;
-  object-fit: cover;
-  box-shadow: 0 0 0 1px var(--tw-line);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, var(--tw-accent) 0 18%, transparent 19% 100%),
+    conic-gradient(from 210deg, transparent 0 68%, var(--tw-accent) 0 74%, transparent 0 100%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tw-accent) 35%, transparent), 0 0 20px color-mix(in srgb, var(--tw-accent) 22%, transparent);
+  animation: tw-radar 4.5s linear infinite;
+}
+
+@keyframes tw-radar {
+  to { transform: rotate(360deg); }
 }
 
 .tw-brand-text {
