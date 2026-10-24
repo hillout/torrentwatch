@@ -34,7 +34,8 @@ app.config(function ($httpProvider, $routeProvider, $mdThemingProvider, mtRoutes
 
     $mdThemingProvider.theme('default')
         .primaryPalette('blue-grey')
-        .accentPalette('deep-purple');
+        .accentPalette('amber')
+        .dark();
 });
 
 app.run(function ($http, $rootScope, mtRoutes) {

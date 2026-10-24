@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import re
 import six
-import sys
 import pytz
 import datetime
 from requests import Session
 import requests
-from sqlalchemy import Column, Integer, String, ForeignKey, MetaData, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, MetaData, Table, text
 from monitorrent.db import Base, DBSession, UTCDateTime
 from monitorrent.plugins import Topic
 from monitorrent.plugin_managers import register_plugin
 from monitorrent.utils.soup import get_soup
 from monitorrent.plugins.trackers import TrackerPluginBase, WithCredentialsMixin, ExecuteWithHashChangeMixin, LoginResult
 
-PLUGIN_NAME = 'kinozal.tv'
+PLUGIN_NAME = 'kinozal.guru'
+KINOZAL_HOST = 'kinozal.guru'
+LEGACY_PLUGIN_NAME = 'kinozal.tv'
+FLARESOLVERR_URL = os.environ.get('FLARESOLVERR_URL', 'http://flaresolverr:8191/v1')
 
 
 class KinozalCredentials(Base):
@@ -24,6 +27,8 @@ class KinozalCredentials(Base):
     password = Column(String, primary_key=True)
     c_uid = Column(String, nullable=True)
     c_pass = Column(String, nullable=True)
+    cf_clearance = Column(String, nullable=True)
+    cf_user_agent = Column(String, nullable=True)
 
 
 class KinozalTopic(Topic):
@@ -55,6 +60,28 @@ def upgrade(engine, operations_factory):
             last_torrent_update = Column('last_torrent_update', UTCDateTime, nullable=True)
             operations.add_column(KinozalTopic.__tablename__, last_torrent_update)
         version = 1
+
+    # Cloudflare cookie cache columns
+    m = MetaData(engine)
+    credentials = Table(KinozalCredentials.__tablename__, m, autoload=True)
+    with operations_factory() as operations:
+        if 'cf_clearance' not in credentials.columns:
+            operations.add_column(KinozalCredentials.__tablename__,
+                                  Column('cf_clearance', String, nullable=True))
+        if 'cf_user_agent' not in credentials.columns:
+            operations.add_column(KinozalCredentials.__tablename__,
+                                  Column('cf_user_agent', String, nullable=True))
+
+    with engine.connect() as conn:
+        conn.execute(
+            text("UPDATE topics SET type = :new WHERE type = :old"),
+            {"new": PLUGIN_NAME, "old": LEGACY_PLUGIN_NAME},
+        )
+        conn.execute(
+            text("UPDATE topics SET url = REPLACE(url, :old_host, :new_host) WHERE url LIKE :pattern"),
+            {"old_host": LEGACY_PLUGIN_NAME, "new_host": KINOZAL_HOST, "pattern": "%kinozal.tv%"},
+        )
+        conn.commit()
 
 
 def get_current_version(engine):
@@ -124,55 +151,206 @@ class KinozalLoginFailedException(Exception):
 
 class KinozalTracker(object):
     tracker_settings = None
-    login_url = "https://kinozal.tv/takelogin.php"
-    profile_page = "https://kinozal.tv/inbox.php"
-    url_regex = re.compile(six.text_type(r'^https?://kinozal\.tv/details\.php\?id=(\d+)$'))
+    login_url = "https://kinozal.guru/takelogin.php"
+    profile_page = "https://kinozal.guru/inbox.php"
+    url_regex = re.compile(
+        six.text_type(r'^\s*https?://(?:www\.)?kinozal\.(?:tv|guru)/details\.php\?id=(\d+)/?\s*$'),
+        re.IGNORECASE
+    )
     date_parser = KinozalDateParser()
 
-    def __init__(self, c_uid=None, c_pass=None):
+    def __init__(self, c_uid=None, c_pass=None, cf_clearance=None, cf_user_agent=None,
+                 cf_cache_updater=None):
         self.c_uid = c_uid
         self.c_pass = c_pass
+        self.cf_clearance = cf_clearance
+        self.cf_user_agent = cf_user_agent
+        self.cf_cache_updater = cf_cache_updater or (lambda clearance, ua: None)
 
-    def setup(self, c_uid, c_pass):
+    def setup(self, c_uid, c_pass, cf_clearance=None, cf_user_agent=None):
         self.c_uid = c_uid
         self.c_pass = c_pass
+        if cf_clearance is not None:
+            self.cf_clearance = cf_clearance
+        if cf_user_agent is not None:
+            self.cf_user_agent = cf_user_agent
+
+    def _normalize_url(self, url):
+        match = self.url_regex.match(url or '')
+        if match is None:
+            return url
+        return "https://{0}/details.php?id={1}".format(KINOZAL_HOST, match.group(1))
 
     def can_parse_url(self, url):
-        return self.url_regex.match(url) is not None
+        return self.url_regex.match(url or '') is not None
+
+    @staticmethod
+    def _is_cloudflare_challenge(html, status_code=None):
+        # 520/521/522/523 are Cloudflare edge errors that often need a fresh session
+        if status_code in (403, 503, 520, 521, 522, 523, 524):
+            return True
+        if not html:
+            return False
+        lowered = html.lower()
+        return ('just a moment' in lowered) or ('cf-challenge' in lowered) or \
+               ('challenge-platform' in lowered) or ('cdn-cgi/challenge' in lowered)
+
+    def _request_kwargs(self):
+        kwargs = {}
+        if self.tracker_settings:
+            kwargs = dict(self.tracker_settings.get_requests_kwargs() or {})
+        headers = dict(kwargs.pop('headers', None) or {})
+        if self.cf_user_agent:
+            headers['User-Agent'] = self.cf_user_agent
+        if headers:
+            kwargs['headers'] = headers
+        kwargs.setdefault('timeout', 15)
+        return kwargs
+
+    def _merge_cookies(self, cookies=None):
+        merged = {}
+        auth = self.get_cookies()
+        if auth:
+            merged.update(auth)
+        if self.cf_clearance:
+            merged['cf_clearance'] = self.cf_clearance
+        if cookies:
+            merged.update(cookies)
+        return merged or None
+
+    def _store_cf_cache(self, clearance, user_agent):
+        if clearance:
+            self.cf_clearance = clearance
+        if user_agent:
+            self.cf_user_agent = user_agent
+        try:
+            self.cf_cache_updater(self.cf_clearance, self.cf_user_agent)
+        except Exception:
+            pass
+
+    def _fetch_html(self, url, cookies=None, allow_redirects=True, use_flaresolverr=True):
+        merged = self._merge_cookies(cookies)
+        kwargs = self._request_kwargs()
+        response = None
+        try:
+            response = requests.get(
+                url,
+                cookies=merged,
+                allow_redirects=allow_redirects,
+                **kwargs
+            )
+            if response.status_code not in (301, 302, 303, 307, 308) and \
+                    not self._is_cloudflare_challenge(response.text, response.status_code):
+                return response.text, response.status_code
+        except Exception:
+            response = None
+
+        if use_flaresolverr:
+            html = self._fetch_via_flaresolverr(url, cookies=merged)
+            if html is not None:
+                # Retry once with freshly cached CF cookies — usually much faster next times.
+                if self.cf_clearance:
+                    try:
+                        retry = requests.get(
+                            url,
+                            cookies=self._merge_cookies(cookies),
+                            allow_redirects=allow_redirects,
+                            **self._request_kwargs()
+                        )
+                        if retry.status_code not in (301, 302, 303, 307, 308) and \
+                                not self._is_cloudflare_challenge(retry.text, retry.status_code):
+                            return retry.text, retry.status_code
+                    except Exception:
+                        pass
+                return html, 200
+
+        if response is not None:
+            return response.text, response.status_code
+        return None, None
+
+    def _fetch_via_flaresolverr(self, url, cookies=None):
+        if not FLARESOLVERR_URL:
+            return None
+        try:
+            payload = {
+                'cmd': 'request.get',
+                'url': url,
+                'maxTimeout': 60000,
+            }
+            if cookies:
+                payload['cookies'] = [{'name': k, 'value': v} for k, v in cookies.items()]
+            result = requests.post(FLARESOLVERR_URL, json=payload, timeout=70)
+            result.raise_for_status()
+            body = result.json()
+            if body.get('status') != 'ok':
+                return None
+            solution = body.get('solution') or {}
+            jar = {c['name']: c['value'] for c in (solution.get('cookies') or [])}
+            clearance = jar.get('cf_clearance')
+            user_agent = solution.get('userAgent')
+            if clearance or user_agent:
+                self._store_cf_cache(clearance, user_agent)
+            return solution.get('response')
+        except Exception:
+            return None
+
+    def _extract_topic_title(self, html):
+        if not html or self._is_cloudflare_challenge(html):
+            return None
+        soup = get_soup(html)
+        if soup.title and u'вход' in soup.title.text.strip().lower():
+            return None
+        if soup.h1 is None:
+            return None
+        title = soup.h1.text.strip()
+        if not title or title.lower() in ('just a moment...', 'just a moment'):
+            return None
+        return title
 
     def parse_url(self, url):
-        match = self.url_regex.match(url)
+        match = self.url_regex.match(url or '')
         if match is None:
             return None
 
-        r = requests.get(url, allow_redirects=False, **self.tracker_settings.get_requests_kwargs())
-
-        soup = get_soup(r.text)
-        if soup.h1 is None:
-            # Kinozal doesn't return 404 for not existing topic
-            # it return regular page with text 'Тема не найдена'
-            # and we can check it by not existing heading of the requested topic
-            return None
-        title = soup.h1.text.strip()
-
-        return {'original_name': title}
+        torrent_id = match.group(1)
+        fallback = {'original_name': 'kinozal #{0}'.format(torrent_id)}
+        try:
+            normalized = self._normalize_url(url)
+            html, _status = self._fetch_html(normalized, allow_redirects=True, use_flaresolverr=True)
+            title = self._extract_topic_title(html)
+            if title:
+                return {'original_name': title}
+        except Exception:
+            pass
+        return fallback
 
     def login(self, username, password):
-        s = Session()
-        data = {"username": username, "password": password, 'returnto': ''}
-        login_result = s.post(self.login_url, data, **self.tracker_settings.get_requests_kwargs())
-        if login_result.url.startswith(self.login_url):
-            # TODO get error info (although it shouldn't contain anything useful
-            # it can contain request to enter capture, so we should handle it
-            raise KinozalLoginFailedException(1, "Invalid login or password")
-        else:
-            c_pass = s.cookies.get('pass')
-            c_uid = s.cookies.get('uid')
-            if not c_pass or not c_uid:
-                raise KinozalLoginFailedException(2, "Failed to retrieve cookie")
+        # Ensure we have a fresh CF session for login form.
+        self._fetch_via_flaresolverr('https://{0}/'.format(KINOZAL_HOST), cookies=None)
 
-            self.c_pass = c_pass
-            self.c_uid = c_uid
+        s = Session()
+        kwargs = self._request_kwargs()
+        headers = kwargs.pop('headers', None) or {}
+        s.headers.update(headers)
+        if self.cf_clearance:
+            s.cookies.set('cf_clearance', self.cf_clearance, domain=KINOZAL_HOST)
+
+        data = {"username": username, "password": password, 'returnto': ''}
+        try:
+            login_result = s.post(self.login_url, data, **kwargs)
+        except Exception:
+            raise KinozalLoginFailedException(2, "Failed to retrieve cookie")
+
+        if login_result.url.startswith(self.login_url):
+            raise KinozalLoginFailedException(1, "Invalid login or password")
+
+        c_pass = s.cookies.get('pass')
+        c_uid = s.cookies.get('uid')
+        if not c_pass or not c_uid:
+            raise KinozalLoginFailedException(2, "Failed to retrieve cookie")
+
+        self.c_pass = c_pass
+        self.c_uid = c_uid
 
     def verify(self):
         if not self.c_uid:
@@ -180,9 +358,15 @@ class KinozalTracker(object):
         cookies = self.get_cookies()
         if not cookies:
             return False
-        profile_page_result = requests.get(self.profile_page, cookies=cookies,
-                                           **self.tracker_settings.get_requests_kwargs())
-        return profile_page_result.url == self.profile_page
+        html, status = self._fetch_html(self.profile_page, cookies=cookies)
+        if html is None:
+            return False
+        if self._is_cloudflare_challenge(html, status):
+            return False
+        soup = get_soup(html)
+        if soup.title and u'вход' in soup.title.text.strip().lower():
+            return False
+        return True
 
     def get_cookies(self):
         if not self.c_pass or not self.c_uid:
@@ -190,18 +374,21 @@ class KinozalTracker(object):
         return {'pass': self.c_pass, 'uid': self.c_uid}
 
     def get_id(self, url):
-        match = self.url_regex.match(url)
+        match = self.url_regex.match(url or '')
         if match is None:
             return None
-
         return match.group(1)
 
     def get_last_torrent_update(self, url):
-        response = requests.get(url, **self.tracker_settings.get_requests_kwargs())
-        response.raise_for_status()
+        url = self._normalize_url(url)
+        html, status = self._fetch_html(url)
+        if html is None or self._is_cloudflare_challenge(html, status):
+            return None
 
-        soup = get_soup(response.text)
+        soup = get_soup(html)
         content = soup.find("div", {"class": "mn1_menu"})
+        if content is None:
+            return None
         text_element = content.find(lambda tag: (tag.name == 'li') and (u'Обновлен' in tag.contents))
         date_text = None
         if text_element is not None:
@@ -224,12 +411,32 @@ class KinozalTracker(object):
         torrent_id = self.get_id(url)
         if torrent_id is None:
             return None
+        # dl.kinozal.guru currently returns Cloudflare 520; main domain works.
+        return "https://{0}/download.php?id={1}".format(KINOZAL_HOST, torrent_id)
 
-        return "https://dl.kinozal.tv/download.php?id=" + torrent_id
+    def ensure_cf_session(self, probe_url=None, force=False):
+        """
+        Make sure cf_clearance(+UA) works for authenticated downloads.
+        Prefer warming against the topic page itself — homepage cookies are not always enough.
+        """
+        probe = probe_url or "https://{0}/details.php?id=1".format(KINOZAL_HOST)
+        if not force and self.cf_clearance and self.cf_user_agent:
+            try:
+                response = requests.get(
+                    probe,
+                    cookies=self._merge_cookies(),
+                    allow_redirects=True,
+                    **self._request_kwargs()
+                )
+                if not self._is_cloudflare_challenge(response.text, response.status_code):
+                    return True
+            except Exception:
+                pass
+        html = self._fetch_via_flaresolverr(probe, cookies=self._merge_cookies())
+        return bool(html and self.cf_clearance)
 
 
 class KinozalPlugin(WithCredentialsMixin, ExecuteWithHashChangeMixin, TrackerPluginBase):
-    tracker = KinozalTracker()
     topic_class = KinozalTopic
     credentials_class = KinozalCredentials
     topic_form = [{
@@ -242,6 +449,17 @@ class KinozalPlugin(WithCredentialsMixin, ExecuteWithHashChangeMixin, TrackerPlu
         }]
     }]
 
+    def __init__(self):
+        self.tracker = KinozalTracker(cf_cache_updater=self._persist_cf_cache)
+
+    def _persist_cf_cache(self, clearance, user_agent):
+        with DBSession() as db:
+            cred = db.query(self.credentials_class).first()
+            if not cred:
+                return
+            cred.cf_clearance = clearance
+            cred.cf_user_agent = user_agent
+
     def login(self):
         with DBSession() as db:
             cred = db.query(self.credentials_class).first()
@@ -251,19 +469,21 @@ class KinozalPlugin(WithCredentialsMixin, ExecuteWithHashChangeMixin, TrackerPlu
             password = cred.password
             if not username or not password:
                 return LoginResult.CredentialsNotSpecified
+            self.tracker.setup(cred.c_uid, cred.c_pass, cred.cf_clearance, cred.cf_user_agent)
         try:
             self.tracker.login(username, password)
             with DBSession() as db:
                 cred = db.query(self.credentials_class).first()
                 cred.c_uid = self.tracker.c_uid
                 cred.c_pass = self.tracker.c_pass
+                cred.cf_clearance = self.tracker.cf_clearance
+                cred.cf_user_agent = self.tracker.cf_user_agent
             return LoginResult.Ok
         except KinozalLoginFailedException as e:
             if e.code == 1:
                 return LoginResult.IncorrentLoginPassword
             return LoginResult.Unknown
-        except Exception as e:
-            # TODO: Log unexpected excepton
+        except Exception:
             return LoginResult.Unknown
 
     def verify(self):
@@ -275,31 +495,66 @@ class KinozalPlugin(WithCredentialsMixin, ExecuteWithHashChangeMixin, TrackerPlu
             password = cred.password
             if not username or not password or not cred.c_uid or not cred.c_pass:
                 return False
-            self.tracker.setup(cred.c_uid, cred.c_pass)
+            self.tracker.setup(cred.c_uid, cred.c_pass, cred.cf_clearance, cred.cf_user_agent)
         return self.tracker.verify()
 
     def can_parse_url(self, url):
         return self.tracker.can_parse_url(url)
 
+    def _load_tracker_cookies(self):
+        try:
+            with DBSession() as db:
+                cred = db.query(self.credentials_class).first()
+                if not cred or not cred.c_uid or not cred.c_pass:
+                    return
+                self.tracker.setup(cred.c_uid, cred.c_pass, cred.cf_clearance, cred.cf_user_agent)
+        except Exception:
+            return
+
     def parse_url(self, url):
+        self._load_tracker_cookies()
         return self.tracker.parse_url(url)
 
+    def prepare_add_topic(self, url):
+        self._load_tracker_cookies()
+        try:
+            return super(KinozalPlugin, self).prepare_add_topic(url)
+        except Exception:
+            match = self.tracker.url_regex.match(url or '')
+            if not match:
+                return None
+            return {'display_name': 'kinozal #{0}'.format(match.group(1))}
+
     def check_changes(self, topic):
+        self._load_tracker_cookies()
         last_torrent_update = self.tracker.get_last_torrent_update(topic.url)
         topic_last_torrent_update = topic.last_torrent_update
         min_date = pytz.utc.localize(datetime.datetime.min)
 
-        if (not last_torrent_update and not topic_last_torrent_update) or (topic_last_torrent_update or min_date) < (last_torrent_update or min_date):
+        if (not last_torrent_update and not topic_last_torrent_update) or \
+                (topic_last_torrent_update or min_date) < (last_torrent_update or min_date):
             topic.last_torrent_update = last_torrent_update
             return True
 
         return False
 
     def _prepare_request(self, topic):
-        headers = {'referer': topic.url}
-        cookies = self.tracker.get_cookies()
-        request = requests.Request('GET', self.tracker.get_download_url(topic.url), headers=headers, cookies=cookies)
-        return request.prepare()
+        self._load_tracker_cookies()
+        details_url = self.tracker._normalize_url(topic.url)
+        # Warm/refresh CF against the same topic page before hitting download.php
+        self.tracker.ensure_cf_session(probe_url=details_url)
+        headers = {'Referer': details_url}
+        if self.tracker.cf_user_agent:
+            headers['User-Agent'] = self.tracker.cf_user_agent
+        cookies = self.tracker._merge_cookies()
+        url = self.tracker.get_download_url(topic.url)
+        # Return URL+kwargs so download() uses requests.get with cookies explicitly.
+        return url, {
+            'headers': headers,
+            'cookies': cookies,
+            'allow_redirects': True,
+            'timeout': 60,
+        }
 
 
 register_plugin('tracker', PLUGIN_NAME, KinozalPlugin(), upgrade)

@@ -2,12 +2,14 @@
 <html lang="en" ng-app="monitorrent">
 
     <head>
-        <title>Monitorrent</title>
+        <title>TorrentWatch</title>
         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.0-rc4/angular-material.css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
         <link rel="stylesheet" href="styles/monitorrent.css">
-    
+
         <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
         <!-- Angular Material Dependencies -->
@@ -18,84 +20,70 @@
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-sanitize.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.0-rc4/angular-material.js"></script>
-        
+
         <!-- @if MODE='index' -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/ngInfiniteScroll/1.2.1/ng-infinite-scroll.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
-
         <!-- @endif -->
 
-        <meta name="viewport" content="initial-scale=1" />
-
-        <!-- @if MODE='login' -->
-        <style type="text/css">
-            .mt-login-form {
-                width: 400px;
-                margin: 40px;
-            }
-        </style>
-
-        <!-- @endif -->
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <meta name="theme-color" content="#0b1220" />
     </head>
 
-    <body class="monitorrent" ng-controller="MainCtrl">
+    <body class="monitorrent tw-app" ng-controller="MainCtrl">
+        <div class="tw-atmosphere" aria-hidden="true"></div>
         <div layout="row" class="mt-body">
             <div class="mt-content" flex>
-                <md-toolbar class="md-whiteframe-z1">
-                    <div class="md-toolbar-tools">
-                        <h2 class="md-headline">
-                            <a href="#/">Monitorrent</a>
-                            <span class="md-caption">v.<!-- @echo VERSION --></span>
-                            <!-- @if MODE='index' -->
-                            <a href="{{newVersionUrl}}" ng-if="newVersionUrl" class="md-caption" style="color: rgb(124, 255, 142); font-weight: bold;">(new version available)</a>
-                            <!-- @endif -->
-                        </h2>
+                <md-toolbar class="tw-toolbar">
+                    <div class="md-toolbar-tools tw-toolbar-tools">
+                        <a href="#/" class="tw-brand">
+                            <span class="tw-brand-mark" aria-hidden="true"></span>
+                            <span class="tw-brand-text">
+                                <span class="tw-brand-name">TorrentWatch</span>
+                                <span class="tw-brand-meta">v.<!-- @echo VERSION --></span>
+                            </span>
+                        </a>
                         <!-- @if MODE='index' -->
+                        <a href="{{newVersionUrl}}" ng-if="newVersionUrl" class="tw-update-pill">update available</a>
                         <span flex></span>
-                        <md-button class="md-icon-button" aria-label="Logout" href="#/settings">
+                        <md-button class="md-icon-button tw-icon-btn" aria-label="Settings" href="#/settings">
                             <md-icon md-svg-icon="content/icons/settings.svg"></md-icon>
                         </md-button>
-                        <md-button class="md-icon-button" aria-label="Logout" ng-click="exit()" ng-show="exit_visible">
+                        <md-button class="md-icon-button tw-icon-btn" aria-label="Logout" ng-click="exit()" ng-show="exit_visible">
                             <md-icon md-svg-icon="content/icons/exit-to-app.svg"></md-icon>
                         </md-button>
                         <!-- @endif -->
                     </div>
                 </md-toolbar>
-                <md-content layout="column" layout-align="start center">
+                <md-content layout="column" layout-align="start center" class="tw-main">
                     <!-- @if MODE='index' -->
                     <div ng-view class="md-padding mt-content-view"></div>
                     <!-- @endif -->
                     <!-- @if MODE='login' -->
-                    <div layout="row" layout-align="center start">
-                        <md-card class="ng-cloak mt-login-form">
-                            <md-toolbar>
-                                <div class="md-toolbar-tools">
-                                    <h1>Enter Monitorrent</h1>
-                                </div>
-                            </md-toolbar>
-                            <md-content style="padding: 8px;">
-                                <form name="login" ng-submit="submit()" layout="column" layout-align="start stretch">
-                                    <div layout="row">
-                                        <md-input-container flex>
-                                            <label>Password</label>
-                                            <input required md-no-asterisk type="password" name="password"
-                                                ng-model="password" ng-change="passwordValidation.valid()">
-                                            <div ng-messages="login.password.$error" md-auto-hide="false" ng-if="login.$submitted || login.password.$touched">
-                                                <div ng-message="required" class="md-input-message-animation">Please enter your password</div>
-                                                <div ng-message="wrongPassword" class="md-input-message-animation">Password is incorrect</div>
-                                            </div>
-                                        </md-input-container>
+                    <div layout="row" layout-align="center center" class="tw-login-main" flex>
+                        <section class="tw-login-panel ng-cloak">
+                            <p class="tw-login-kicker">Access</p>
+                            <h1 class="tw-login-title">TorrentWatch</h1>
+                            <p class="tw-login-sub">Enter your password to continue watching trackers.</p>
+                            <form name="login" ng-submit="submit()" layout="column" layout-align="start stretch" class="tw-login-form">
+                                <md-input-container flex class="tw-field">
+                                    <label>Password</label>
+                                    <input required md-no-asterisk type="password" name="password"
+                                        ng-model="password" ng-change="passwordValidation.valid()">
+                                    <div ng-messages="login.password.$error" md-auto-hide="false" ng-if="login.$submitted || login.password.$touched">
+                                        <div ng-message="required" class="md-input-message-animation">Please enter your password</div>
+                                        <div ng-message="wrongPassword" class="md-input-message-animation">Password is incorrect</div>
                                     </div>
-                                    <md-button type="submit" class="md-raised md-primary" ng-disabled="login.$invalid">Enter</md-button>
-                                </form>
-                            </md-content>
-                        </md-card>
+                                </md-input-container>
+                                <md-button type="submit" class="md-raised md-primary tw-cta" ng-disabled="login.$invalid">Sign in</md-button>
+                            </form>
+                        </section>
                     </div>
                     <!-- @endif -->
                 </md-content>
             </div>
         </div>
-    
+
         <!-- @if MODE='index' -->
         <script src="scripts/monitorrent.js?v=<!-- @echo COMMIT_HASH -->"></script>
         <!-- @endif -->
@@ -106,12 +94,13 @@
             app.config(function ($mdThemingProvider) {
                 $mdThemingProvider.theme('default')
                         .primaryPalette('blue-grey')
-                        .accentPalette('deep-purple');
+                        .accentPalette('amber')
+                        .dark();
             });
 
             app.controller('MainCtrl', ['$scope', '$http', '$window', function ($scope, $http, $window) {
                 $scope.password = "";
-            
+
                 $scope.passwordValidation = {
                     valid: function () {
                         $scope.login.password.$setValidity('wrongPassword', true);

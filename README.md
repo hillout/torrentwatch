@@ -1,160 +1,196 @@
-# monitorrent
+# TorrentWatch
 
-![awesome](https://img.shields.io/badge/Awesome-Yes-brightgreen.svg)
-[![Build Status](https://travis-ci.org/werwolfby/monitorrent.svg?branch=develop)](https://travis-ci.org/werwolfby/monitorrent)
-[![Build status](https://ci.appveyor.com/api/projects/status/emt2y0jcya73lxj3?svg=true)](https://ci.appveyor.com/project/werwolfby/monitorrent)
-[![Coverage Status](https://coveralls.io/repos/werwolfby/monitorrent/badge.svg?branch=develop&service=github)](https://coveralls.io/github/werwolfby/monitorrent?branch=develop)
-[![codecov.io](https://codecov.io/github/werwolfby/monitorrent/coverage.svg?branch=develop)](https://codecov.io/github/werwolfby/monitorrent?branch=develop)
+**TorrentWatch** — форк [Monitorrent](https://github.com/werwolfby/monitorrent) с современным UI и поддержкой **kinozal.guru** через **FlareSolverr**.
 
-Join discussion at:
+Базовая версия: Monitorrent **1.4.0**.
 
-[![Join the chat at https://gitter.im/werwolfby/monitorrent](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/werwolfby/monitorrent?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+## Что изменилось относительно upstream
 
-## Support on Beerpay
-Hey dude! Help me out for a couple of :beers:!
+- Ребрендинг UI: **TorrentWatch** (тёмная тема, IBM Plex Sans)
+- Трекер **kinozal.guru** вместо устаревшего kinozal.tv
+- Обход Cloudflare через **FlareSolverr** (`FLARESOLVERR_URL`) + кэш `cf_clearance`
+- Скачивание раздач с основного домена (обход 520 на `dl.kinozal.guru`)
+- Миграция существующих топиков/URL с `kinozal.tv` → `kinozal.guru`
 
-[![Yandex.Money](https://img.shields.io/badge/-%D0%BF%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D1%82%D1%8C-dfb317.svg?style=flat&colorA=ffffff&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAnFBMVEUAAAD%2F%2FwD%2FzAD%2FvyD%2FzBr%2FyBL%2FxRf2wRL6wxb6wxT7xhXuuRHmtAvvvBD7xRPuuw%2FvvBD6xRX7xhT6xRT5xBT3wRL6xRT6xRT5wxP6xRT5xRP6xRRgTAl7YQukgQ6phQ7XqwXYqwbYrAbZrAbgsgniswrltQrotwzrug7sug7tuw%2FuvA%2FvvQ%2F2whL2wxL4wxP4xBP5xBP5xRP6xRQWtWWMAAAAHHRSTlMAAQUICg4WHS8zSElcb3eKlJWyytTd7e7v%2BPv8BVgXXQAAAGNJREFUeAFdx1USwyAYBkDqpe4uRIj7d%2F%2B75R%2BGDCT7tkybHJllcX5aW91gOtq9YTo7AabjC%2BX3eW3WfErdgnz%2FjQjBqQcog9a95r7d2BNO1LWQrkxKqO6RBlkFojq%2FPu7akrWLthGpa2oo%2BAAAAABJRU5ErkJggg%3D%3D)](https://money.yandex.ru/to/410012638435097)
+## Возможности (как у Monitorrent)
 
-This app can watch for torrent updates
+### Трекеры
 
-### Supported trackers:
-- support www.lostfilm.tv tracking over parse topic page with topic quality support (new design support)
-- support www.rutor.org topic tracking
-- support www.free-torrents.org topic tracking
-- support www.rutracker.org topic tracking
-- support www.tapochek.net topic tracking
-- support www.unionpeer.org topic tracking
-- support [nnmclub.to](http://nnmclub.to) topic tracking
-- support [tr.anidub.com](http://tr.anidub.com) topic tracking with topic quality support
-- support [kinozal.tv](http://kinozal.tv) topic tracking
-- support [hdclub.org](http://hdclub.org) topic tracking
-- support [anilibria.tv](https://www.anilibria.tv) topic tracking
+LostFilm, Rutor, Free-Torrents, RuTracker, Tapochek, Unionpeer, NNMClub, AniDub, **Kinozal.guru**, HDClub, AniLibria, Toloka и др.
 
-### Supported torrent clients:
-- support download torrent files to specified folder (downloader plugin)
-- support **transmission** over transmission-rpc
-- support **deluge** over deluge-rpc
-- support **uTorrent** over uTorrent web api
-- support **qbittorrent** over webui api
+### Клиенты
 
-### Supported notification services:
-- support notifications over [telegram.org](https://telegram.org/) ([Russian instructions](https://github.com/werwolfby/monitorrent/wiki/FAQ))
-- support notifications over [pushover.net](https://pushover.net)
-- support notifications over **email**
-- support notifications over [pushbullet.com](https://www.pushbullet.com)
-- support notifications over [pushall.ru](https://pushall.ru)
+Папка на диске, Transmission, Deluge, uTorrent, qBittorrent.
 
-## Installation:
+### Уведомления
 
-### Docker
+Telegram, Pushover, Email, Pushbullet, Pushall.
 
-Multiplatform image (`arm64` and `amd64` (`arm` is not supported anymore, until playwright will support it)):
+---
 
-[![Docker Pulls](https://badgen.net/docker/pulls/werwolfby/monitorrent?icon=docker&label=pulls)](https://hub.docker.com/r/werwolfby/monitorrent/)
-[![Docker Stars](https://badgen.net/docker/stars/werwolfby/monitorrent?icon=docker&label=stars)](https://hub.docker.com/r/werwolfby/monitorrent/)
-[![Docker Image Size](https://badgen.net/docker/size/werwolfby/monitorrent?icon=docker&label=image%20size)](https://hub.docker.com/r/werwolfby/monitorrent/)
+## Быстрый старт (Docker Compose)
 
-[https://hub.docker.com/r/werwolfby/monitorrent/](https://hub.docker.com/r/werwolfby/monitorrent/)
+### Требования
 
-#### How to run docker?
+- Docker + Docker Compose
+- ~512 MB RAM (FlareSolverr может потреблять больше при решении CF)
 
-Monitorrent expose 6687 tcp port. And has database to store all current settings and info about monitorrent tracker topics.
-To store this database outside of container it has to be mounted to file outside monitorrent:
+### Установка
 
 ```bash
-touch /path/to/monitorrent.db
-docker run -d \
-    --name monitorrent \
-    -p 6687:6687 \
-    -v /path/to/monitorrent.db:/var/www/monitorrent/monitorrent.db werwolfby/alpine-monitorrent
+git clone https://github.com/hillout/torrentwatch.git
+cd torrentwatch
+mkdir -p data
+# создайте пустой файл БД, если его ещё нет
+touch data/monitorrent.db
+
+docker compose up -d --build
 ```
 
-Where `/path/to/monitorrent.db` is path to stored monitorrent database file (it has to be absolute or use `pwd` macros in docker command).
+Откройте в браузере: [http://localhost:6687](http://localhost:6687)
 
-For ARM version please use `werwolfby/armhf-alpine-monitorrent`.
+- **Логин:** пароль по умолчанию — `monitorrent`
+- Сразу смените пароль в **Settings → Authentication** или отключите auth
 
-### Windows Installer:
-https://github.com/werwolfby/monitorrent/releases/download/1.4.0/MonitorrentInstaller-1.4.0.msi
+### Сервисы
 
-### Manual Install
+| Сервис         | Порт  | Назначение                          |
+|----------------|-------|-------------------------------------|
+| `torrentwatch` | 6687  | Веб-интерфейс и API                 |
+| `flaresolverr` | —     | Обход Cloudflare для kinozal.guru   |
 
-Requirements:
-  - Python 3.9+ and pip
+Переменная окружения:
 
-Download latest build: https://github.com/werwolfby/monitorrent/releases/download/1.4.0/monitorrent-1.4.0.zip
-Extract into **monitorent** folder
- * pip install -r requirements.txt
- * playwright --with-deps install firefox
- * python server.py
+```yaml
+FLARESOLVERR_URL=http://flaresolverr:8191/v1
+```
 
-This will start webserver on port 6687
+### Обновление
 
-Open in browser 
-http://localhost:6687
+```bash
+cd torrentwatch
+git pull
+docker compose up -d --build
+```
 
-Default password is **monitorrent**. Don't forget to change in settings tab or disable authentication at all
+База данных в `./data/monitorrent.db` сохраняется между пересборками.
 
-#### Note for python 2.7
+---
 
-Monitorrent can run on Python 2.7, but because of unicode processing in it, [there are](https://github.com/werwolfby/monitorrent/issues?utf8=%E2%9C%93&q=is%3Aissue%20label%3A%22python%202%22%20label%3A%22wontfix%22%20) plenty of issues with russian symbols in urls, pathes and credentials. Some of this issues are part of libraries that Monitorrent uses, so it can't be fixed on our side.
+## Docker без Compose
 
-We will continue to support main functionallity on Python 2.7, but 'ascii' encoding issues will not be fixed in most cases.
+```bash
+# 1) FlareSolverr
+docker run -d --name flaresolverr \
+  -e LOG_LEVEL=info \
+  --restart unless-stopped \
+  ghcr.io/flaresolverr/flaresolverr:latest
 
-### Manual Install from sources (development mode)
+# 2) TorrentWatch (в одной docker-сети с flaresolverr)
+docker network create tw-net
+docker network connect tw-net flaresolverr
 
-Requirements:
- - Python 2.7 or 3.x, and pip
- - NodeJS 4.x
+docker build -t torrentwatch:latest .
+docker run -d --name torrentwatch \
+  --network tw-net \
+  -e FLARESOLVERR_URL=http://flaresolverr:8191/v1 \
+  -p 6687:6687 \
+  -v "$PWD/data/monitorrent.db:/var/www/monitorrent/monitorrent.db" \
+  --restart unless-stopped \
+  torrentwatch:latest
+```
 
-Download this repo:
- * git clone https://github.com/werwolfby/monitorrent.git
- * cd monitorrent
+---
 
-To get monitorrent up and running execute following commands:
+## Ручная установка (разработка)
 
- * pip install -r requirements.txt
- * npm install
- * gulp
- * python server.py
+### Backend
 
-This will start webserver on port 6687
+Требования: **Python 3.9+**, pip.
 
-Open in browser 
-http://localhost:6687
+```bash
+git clone https://github.com/hillout/torrentwatch.git
+cd torrentwatch
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+playwright install --with-deps firefox
 
-Default password is **monitorrent**. Don't forget to change in settings tab or disable authentication at all
+export FLARESOLVERR_URL=http://127.0.0.1:8191/v1
+python server.py
+```
 
-### Command Line Interface
+Веб-сервер: порт **6687**.
 
-|`config.py` |Argument    |Environment Variable    |Default            |Description                                     |
-|------------|------------|------------------------|-------------------|------------------------------------------------|
-|`debug`     |`--debug`   |`MONITORRENT_DEBUG`     |`False`            |Run in debug mode. Secret key is always the same|
-|`ip`        |`--ip`      |`MONITORRENT_IP`        |`0.0.0.0`          |Bind interface                                  |
-|`port`      |`--port`    |`MONITORRENT_PORT`      |`6687`             |Port for server                                 |
-|`db-path`   |`--db-path` |`MONITORRENT_DB_PATH`   |`monitorrent.db`   |Path to SQL lite database                       |
-|            |`--config`  |                        |`config.py`        |Path to config file                             |
+> Для kinozal.guru всё равно нужен запущенный FlareSolverr.
 
-> NOTE: Environment Variables overrides config data, Command Line arguments overrides Environment Variables
+### Frontend (пересборка UI)
 
-> NOTE: config.py is regular python file with variables and values:
-> `debug = True`, `ip = '127.0.0.1''`
+Требования: **Node.js** (для gulp 3 удобнее Node 10–14) и npm.
 
-## Screenshots:
+```bash
+npm install
+npx gulp          # dev build в dist/
+# или
+npx gulp release  # release zip + dist/
+```
 
-### Main page
-![Main Page](https://cloud.githubusercontent.com/assets/705754/16707713/059fad8a-45e1-11e6-926f-acd3cc42a613.png)
+После `gulp` статика попадает в `dist/` (это же копируется в Docker-образ).
 
-### Settings
-![Settings](https://cloud.githubusercontent.com/assets/705754/16707717/200ba9b2-45e1-11e6-91a5-17392ee3d81a.png)
+---
 
-### lostfilm.tv quality settings
-![Lostfilm Credentials](https://cloud.githubusercontent.com/assets/705754/16707721/4d03df34-45e1-11e6-8e54-8df4b24236e6.png)
+## Настройка kinozal.guru
 
-### Torrent Clients
-![Torrent Clients](https://cloud.githubusercontent.com/assets/705754/16707722/65da3d1e-45e1-11e6-849a-bf513ed22da1.png)
+1. Запустите стек с FlareSolverr.
+2. **Settings → Trackers → kinozal.guru** — укажите логин/пароль трекера.
+3. Нажмите проверку credentials.
+4. Добавьте раздачу URL вида  
+   `https://kinozal.guru/details.php?id=XXXXX`  
+   (старые ссылки `kinozal.tv` мигрируются автоматически).
 
-### Transmission connection settings
-![Transmission Connection Settings](https://cloud.githubusercontent.com/assets/705754/16707729/978939c8-45e1-11e6-98b2-3608784e627b.png)
+Первый запрос через FlareSolverr может занять 30–60 с; далее используется кэш Cloudflare-cookie.
 
-### Add new topic
-![Add New Topic](https://cloud.githubusercontent.com/assets/705754/16707732/a4e0a868-45e1-11e6-99ed-5178a4d3e52a.png)
+---
+
+## Конфигурация
+
+| Переменная          | По умолчанию                         | Описание                    |
+|---------------------|--------------------------------------|-----------------------------|
+| `FLARESOLVERR_URL`  | `http://flaresolverr:8191/v1`        | Endpoint FlareSolverr API   |
+| `TZ`                | `Europe/Moscow` (в compose)          | Часовой пояс контейнера     |
+
+Данные приложения хранятся в SQLite: `monitorrent.db`.
+
+---
+
+## Traefik / reverse proxy (пример)
+
+```yaml
+labels:
+  - traefik.enable=true
+  - traefik.http.routers.torrentwatch.rule=Host(`torrentwatch.example.com`)
+  - traefik.http.routers.torrentwatch.entrypoints=websecure
+  - traefik.http.routers.torrentwatch.tls=true
+  - traefik.http.services.torrentwatch.loadbalancer.server.port=6687
+```
+
+Рекомендуется закрыть UI через SSO/OIDC (Gatekeeper, Authelia и т.п.) и сменить пароль приложения.
+
+---
+
+## Разработка и вклад
+
+1. Форкните репозиторий
+2. Создайте ветку: `git checkout -b feature/my-change`
+3. Закоммитьте изменения
+4. Откройте Pull Request
+
+Исходный проект: [werwolfby/monitorrent](https://github.com/werwolfby/monitorrent).
+
+---
+
+## Лицензия
+
+Сохранена лицензия upstream: **WTFPL** — см. [LICENSE.md](LICENSE.md).
+
+TorrentWatch — независимый форк; Monitorrent и его авторы не связаны с этим репозиторием.

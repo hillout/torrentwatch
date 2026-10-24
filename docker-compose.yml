@@ -1,0 +1,23 @@
+services:
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Moscow
+    restart: unless-stopped
+
+  torrentwatch:
+    build: .
+    image: torrentwatch:latest
+    container_name: torrentwatch
+    depends_on:
+      - flaresolverr
+    environment:
+      - FLARESOLVERR_URL=http://flaresolverr:8191/v1
+      - TZ=Europe/Moscow
+    volumes:
+      - ./data/monitorrent.db:/var/www/monitorrent/monitorrent.db
+    ports:
+      - "6687:6687"
+    restart: unless-stopped

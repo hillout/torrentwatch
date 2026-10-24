@@ -137,3 +137,9 @@ report.html
 /MonitorrentInstaller/nssm.zip
 
 /.clients/
+
+# local runtime
+data/
+*.db
+.venv/
+
