@@ -3,12 +3,29 @@
 
     <head>
         <title>TorrentWatch</title>
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="favicon.ico" sizes="any">
+        <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.0-rc4/angular-material.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
         <link rel="stylesheet" href="styles/monitorrent.css">
+
+        <script>
+            (function () {
+                var key = 'torrentwatch.theme';
+                var mode = localStorage.getItem(key);
+                if (mode !== 'light' && mode !== 'dark' && mode !== 'system') {
+                    mode = 'system';
+                }
+                document.documentElement.setAttribute('data-theme', mode);
+                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var effective = mode === 'system' ? (dark ? 'dark' : 'light') : mode;
+                document.documentElement.setAttribute('data-theme-effective', effective);
+            })();
+        </script>
 
         <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
@@ -37,7 +54,7 @@
                 <md-toolbar class="tw-toolbar">
                     <div class="md-toolbar-tools tw-toolbar-tools">
                         <a href="#/" class="tw-brand">
-                            <span class="tw-brand-mark" aria-hidden="true"></span>
+                            <img class="tw-brand-mark" src="content/images/logo.svg" width="34" height="34" alt="">
                             <span class="tw-brand-text">
                                 <span class="tw-brand-name">TorrentWatch</span>
                                 <span class="tw-brand-meta">v.<!-- @echo VERSION --></span>
@@ -46,11 +63,22 @@
                         <!-- @if MODE='index' -->
                         <a href="{{newVersionUrl}}" ng-if="newVersionUrl" class="tw-update-pill">update available</a>
                         <span flex></span>
+                        <md-button class="md-icon-button tw-icon-btn tw-theme-btn" aria-label="Theme" ng-click="cycleTheme()" title="Theme: {{twThemeLabel}}">
+                            <md-icon md-svg-icon="{{twThemeIcon}}"></md-icon>
+                            <span class="tw-theme-label">{{twThemeLabel}}</span>
+                        </md-button>
                         <md-button class="md-icon-button tw-icon-btn" aria-label="Settings" href="#/settings">
                             <md-icon md-svg-icon="content/icons/settings.svg"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button tw-icon-btn" aria-label="Logout" ng-click="exit()" ng-show="exit_visible">
                             <md-icon md-svg-icon="content/icons/exit-to-app.svg"></md-icon>
+                        </md-button>
+                        <!-- @endif -->
+                        <!-- @if MODE='login' -->
+                        <span flex></span>
+                        <md-button class="md-icon-button tw-icon-btn tw-theme-btn" aria-label="Theme" ng-click="cycleTheme()" title="Theme: {{twThemeLabel}}">
+                            <md-icon md-svg-icon="{{twThemeIcon}}"></md-icon>
+                            <span class="tw-theme-label">{{twThemeLabel}}</span>
                         </md-button>
                         <!-- @endif -->
                     </div>
@@ -94,11 +122,69 @@
             app.config(function ($mdThemingProvider) {
                 $mdThemingProvider.theme('default')
                         .primaryPalette('blue-grey')
-                        .accentPalette('amber')
-                        .dark();
+                        .accentPalette('amber');
             });
 
-            app.controller('MainCtrl', ['$scope', '$http', '$window', function ($scope, $http, $window) {
+            app.factory('ThemeService', ['$window', '$rootScope', function ($window, $rootScope) {
+                var STORAGE_KEY = 'torrentwatch.theme';
+                var MODES = ['system', 'light', 'dark'];
+                var LABELS = { system: 'System', light: 'Light', dark: 'Dark' };
+                var ICONS = {
+                    system: 'content/icons/theme-system.svg',
+                    light: 'content/icons/theme-light.svg',
+                    dark: 'content/icons/theme-dark.svg'
+                };
+
+                function readStored() {
+                    var value = $window.localStorage.getItem(STORAGE_KEY);
+                    return MODES.indexOf(value) >= 0 ? value : 'system';
+                }
+
+                function resolveEffective(mode) {
+                    if (mode === 'light' || mode === 'dark') {
+                        return mode;
+                    }
+                    if ($window.matchMedia && $window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        return 'dark';
+                    }
+                    return 'light';
+                }
+
+                function apply(mode) {
+                    var root = $window.document.documentElement;
+                    root.setAttribute('data-theme', mode);
+                    var effective = resolveEffective(mode);
+                    root.setAttribute('data-theme-effective', effective);
+                    var meta = $window.document.querySelector('meta[name="theme-color"]');
+                    if (meta) {
+                        meta.setAttribute('content', effective === 'dark' ? '#0b1220' : '#f3f1ec');
+                    }
+                    $rootScope.twTheme = mode;
+                    $rootScope.twThemeLabel = LABELS[mode];
+                    $rootScope.twThemeIcon = ICONS[mode];
+                }
+
+                return {
+                    init: function () { apply(readStored()); },
+                    cycle: function () {
+                        var next = MODES[(MODES.indexOf(readStored()) + 1) % MODES.length];
+                        $window.localStorage.setItem(STORAGE_KEY, next);
+                        apply(next);
+                        return next;
+                    }
+                };
+            }]);
+
+            app.controller('MainCtrl', ['$scope', '$http', '$window', '$rootScope', 'ThemeService', function ($scope, $http, $window, $rootScope, ThemeService) {
+                ThemeService.init();
+                $scope.twThemeLabel = $rootScope.twThemeLabel;
+                $scope.twThemeIcon = $rootScope.twThemeIcon;
+                $scope.cycleTheme = function () {
+                    ThemeService.cycle();
+                    $scope.twThemeLabel = $rootScope.twThemeLabel;
+                    $scope.twThemeIcon = $rootScope.twThemeIcon;
+                };
+
                 $scope.password = "";
 
                 $scope.passwordValidation = {

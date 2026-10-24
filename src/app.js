@@ -34,11 +34,12 @@ app.config(function ($httpProvider, $routeProvider, $mdThemingProvider, mtRoutes
 
     $mdThemingProvider.theme('default')
         .primaryPalette('blue-grey')
-        .accentPalette('amber')
-        .dark();
+        .accentPalette('amber');
 });
 
-app.run(function ($http, $rootScope, mtRoutes) {
+app.run(function ($http, $rootScope, mtRoutes, ThemeService) {
+    ThemeService.init();
+
     $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
         mtRoutes.prevRoute.set(current.originalPath);
     });

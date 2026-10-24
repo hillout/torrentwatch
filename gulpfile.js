@@ -22,7 +22,7 @@ var paths = {
   scripts: ['./src/**/*.js'],
   index_pages: ['./src/*.html'],
   templates: ['./src/**/*.html', '!./src/*.html'],
-  statics: ['./src/**/*.svg', './src/**/*.png', './src/favicon.ico'],
+  statics: ['./src/**/*.svg', './src/**/*.png', './src/*.png', './src/favicon.ico', './src/favicon.svg'],
   styles: ['./src/**/*.less'],
   dest: 'webapp',
   release: 'dist'
@@ -50,7 +50,7 @@ gulp.task('concat', function (cb) {
       .pipe(addStream.obj(prepareTemplates()))
       .pipe(sourcemaps.init())
         .pipe(ngAnnotate())
-        .pipe(concat(pkg.name + '.js'))
+        .pipe(concat('monitorrent.js'))
         .pipe(preprocess({
           context: { VERSION: pkg.version, COMMIT_HASH: rev }
         }))

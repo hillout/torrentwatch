@@ -1,20 +1,95 @@
 :root {
-  --tw-bg: #0b1220;
-  --tw-bg-elevated: rgba(18, 28, 48, 0.78);
-  --tw-bg-soft: rgba(255, 255, 255, 0.04);
-  --tw-line: rgba(255, 214, 140, 0.16);
-  --tw-text: #f4efe4;
-  --tw-text-dim: rgba(244, 239, 228, 0.62);
+  --tw-font: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --tw-display: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --tw-radius: 16px;
+  --tw-inset: 24px;
+  --tw-accent: #c98512;
+  --tw-accent-strong: #a86d0c;
+  --tw-danger: #c23b3b;
+  --tw-warn: #b7791f;
+  --tw-ok: #2f855a;
+  --tw-bg: #f3f1ec;
+  --tw-bg-elevated: #ffffff;
+  --tw-bg-soft: rgba(15, 23, 42, 0.04);
+  --tw-line: rgba(15, 23, 42, 0.1);
+  --tw-text: #1a1f2b;
+  --tw-text-dim: rgba(26, 31, 43, 0.58);
+  --tw-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  --tw-toolbar: rgba(243, 241, 236, 0.86);
+  --tw-panel: #ffffff;
+  --tw-glow-a: rgba(201, 133, 18, 0.1);
+  --tw-glow-b: rgba(56, 120, 180, 0.08);
+  --tw-atmosphere: linear-gradient(180deg, #f7f5f0 0%, #efece4 100%);
+  --tw-grid: rgba(15, 23, 42, 0.035);
+  --tw-cta-text: #fffaf0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tw-accent: #f0b429;
+    --tw-accent-strong: #ffcf5c;
+    --tw-danger: #ff6b6b;
+    --tw-warn: #ffb347;
+    --tw-ok: #6ee7a8;
+    --tw-bg: #0b1220;
+    --tw-bg-elevated: rgba(18, 28, 48, 0.86);
+    --tw-bg-soft: rgba(255, 255, 255, 0.04);
+    --tw-line: rgba(255, 214, 140, 0.14);
+    --tw-text: #f4efe4;
+    --tw-text-dim: rgba(244, 239, 228, 0.62);
+    --tw-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+    --tw-toolbar: rgba(11, 18, 32, 0.78);
+    --tw-panel: #121c30;
+    --tw-glow-a: rgba(240, 180, 41, 0.16);
+    --tw-glow-b: rgba(56, 189, 248, 0.1);
+    --tw-atmosphere: linear-gradient(180deg, #0b1220 0%, #101a2d 48%, #0a101b 100%);
+    --tw-grid: rgba(255, 255, 255, 0.03);
+    --tw-cta-text: #1a1205;
+  }
+}
+
+html[data-theme="light"] {
+  --tw-accent: #c98512;
+  --tw-accent-strong: #a86d0c;
+  --tw-danger: #c23b3b;
+  --tw-warn: #b7791f;
+  --tw-ok: #2f855a;
+  --tw-bg: #f3f1ec;
+  --tw-bg-elevated: #ffffff;
+  --tw-bg-soft: rgba(15, 23, 42, 0.04);
+  --tw-line: rgba(15, 23, 42, 0.1);
+  --tw-text: #1a1f2b;
+  --tw-text-dim: rgba(26, 31, 43, 0.58);
+  --tw-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  --tw-toolbar: rgba(243, 241, 236, 0.86);
+  --tw-panel: #ffffff;
+  --tw-glow-a: rgba(201, 133, 18, 0.1);
+  --tw-glow-b: rgba(56, 120, 180, 0.08);
+  --tw-atmosphere: linear-gradient(180deg, #f7f5f0 0%, #efece4 100%);
+  --tw-grid: rgba(15, 23, 42, 0.035);
+  --tw-cta-text: #fffaf0;
+}
+
+html[data-theme="dark"] {
   --tw-accent: #f0b429;
   --tw-accent-strong: #ffcf5c;
   --tw-danger: #ff6b6b;
   --tw-warn: #ffb347;
   --tw-ok: #6ee7a8;
-  --tw-font: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --tw-display: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --tw-radius: 18px;
-  --tw-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  --tw-inset: 24px;
+  --tw-bg: #0b1220;
+  --tw-bg-elevated: rgba(18, 28, 48, 0.86);
+  --tw-bg-soft: rgba(255, 255, 255, 0.04);
+  --tw-line: rgba(255, 214, 140, 0.14);
+  --tw-text: #f4efe4;
+  --tw-text-dim: rgba(244, 239, 228, 0.62);
+  --tw-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  --tw-toolbar: rgba(11, 18, 32, 0.78);
+  --tw-panel: #121c30;
+  --tw-glow-a: rgba(240, 180, 41, 0.16);
+  --tw-glow-b: rgba(56, 189, 248, 0.1);
+  --tw-atmosphere: linear-gradient(180deg, #0b1220 0%, #101a2d 48%, #0a101b 100%);
+  --tw-grid: rgba(255, 255, 255, 0.03);
+  --tw-cta-text: #1a1205;
 }
 
 html,
@@ -74,22 +149,21 @@ a:not(.md-button) {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(900px 520px at 12% -10%, rgba(240, 180, 41, 0.18), transparent 55%),
-    radial-gradient(700px 480px at 92% 8%, rgba(56, 189, 248, 0.12), transparent 50%),
-    radial-gradient(800px 600px at 50% 110%, rgba(240, 180, 41, 0.08), transparent 45%),
-    linear-gradient(180deg, #0b1220 0%, #101a2d 48%, #0a101b 100%);
+    radial-gradient(900px 520px at 12% -10%, var(--tw-glow-a), transparent 55%),
+    radial-gradient(700px 480px at 92% 8%, var(--tw-glow-b), transparent 50%),
+    var(--tw-atmosphere);
 }
 
 .tw-atmosphere::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.35;
+  opacity: 0.5;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle at center, black 20%, transparent 75%);
+    linear-gradient(var(--tw-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tw-grid) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at center, black 15%, transparent 72%);
 }
 
 .monitorrent > .mt-body,
@@ -171,7 +245,7 @@ md-input-container {
 /* Brand / toolbar */
 .tw-toolbar.md-toolbar,
 md-toolbar.tw-toolbar {
-  background: rgba(11, 18, 32, 0.72) !important;
+  background: var(--tw-toolbar) !important;
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--tw-line);
   box-shadow: none !important;
@@ -183,31 +257,25 @@ md-toolbar.tw-toolbar {
   max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: 10px var(--tw-inset) !important;
-  min-height: 72px !important;
+  padding: 8px var(--tw-inset) !important;
+  min-height: 64px !important;
   box-sizing: border-box;
 }
 
 .tw-brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .tw-brand-mark {
   width: 34px;
   height: 34px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(240, 180, 41, 0.95) 0 18%, transparent 19% 100%),
-    conic-gradient(from 210deg, transparent 0 68%, rgba(240, 180, 41, 0.95) 0 74%, transparent 0 100%);
-  box-shadow: 0 0 0 1px rgba(240, 180, 41, 0.35), 0 0 24px rgba(240, 180, 41, 0.25);
-  animation: tw-radar 4.5s linear infinite;
-}
-
-@keyframes tw-radar {
-  to { transform: rotate(360deg); }
+  border-radius: 9px;
+  display: block;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--tw-line);
 }
 
 .tw-brand-text {
@@ -219,14 +287,14 @@ md-toolbar.tw-toolbar {
 .tw-brand-name {
   font-family: var(--tw-display) !important;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   letter-spacing: -0.02em;
 }
 
 .tw-brand-meta {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--tw-text-dim);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -234,12 +302,39 @@ md-toolbar.tw-toolbar {
   margin-left: 14px;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(110, 231, 168, 0.35);
+  border: 1px solid color-mix(in srgb, var(--tw-ok) 40%, transparent);
   color: var(--tw-ok) !important;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.tw-theme-btn {
+  min-width: 40px !important;
+}
+
+.tw-theme-btn .tw-theme-label {
+  display: none;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tw-text-dim);
+}
+
+@media (min-width: 900px) {
+  .tw-theme-btn {
+    width: auto !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--tw-line);
+  }
+
+  .tw-theme-btn .tw-theme-label {
+    display: inline;
+  }
 }
 
 .tw-icon-btn md-icon,
@@ -249,7 +344,7 @@ md-toolbar.tw-toolbar {
 }
 
 .tw-icon-btn:hover {
-  background: rgba(240, 180, 41, 0.12) !important;
+  background: var(--tw-bg-soft) !important;
 }
 
 /* Surfaces */
@@ -310,8 +405,8 @@ md-list-item ._md-list-item-inner .md-avatar {
   width: 40px;
   margin: 8px 16px 8px 0;
   border-radius: 10px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--tw-line);
+  background: var(--tw-bg-soft);
 }
 
 .md-icon-button > md-icon {
@@ -601,17 +696,17 @@ md-card md-input-container {
 .md-button.md-primary,
 .md-button.md-raised.md-primary,
 .tw-cta.md-button {
-  background: linear-gradient(135deg, var(--tw-accent), #d99212) !important;
-  color: #1a1205 !important;
+  background: var(--tw-accent) !important;
+  color: var(--tw-cta-text) !important;
   font-weight: 600 !important;
   letter-spacing: 0.01em;
   border-radius: 999px !important;
-  box-shadow: 0 10px 30px rgba(240, 180, 41, 0.28) !important;
+  box-shadow: none !important;
 }
 
 .md-button.md-primary:hover,
 .md-button.md-raised.md-primary:hover {
-  background: linear-gradient(135deg, var(--tw-accent-strong), var(--tw-accent)) !important;
+  background: var(--tw-accent-strong) !important;
 }
 
 .md-button.md-icon-button md-icon svg {
@@ -627,7 +722,7 @@ md-input-container .md-input,
 md-input-container label,
 md-input-container .md-placeholder {
   color: var(--tw-text) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: var(--tw-line) !important;
 }
 
 md-input-container.md-input-focused label,
@@ -648,7 +743,7 @@ md-input-container .md-errors-spacer {
 md-dialog,
 .md-dialog-content,
 md-menu-content {
-  background: #121c30 !important;
+  background: var(--tw-panel) !important;
   color: var(--tw-text) !important;
   border: 1px solid var(--tw-line);
   border-radius: 16px !important;
@@ -660,7 +755,7 @@ md-menu-item .md-button {
 }
 
 md-toast .md-toast-content {
-  background: #18233a !important;
+  background: var(--tw-panel) !important;
   color: var(--tw-text) !important;
   border: 1px solid var(--tw-line);
   border-radius: 12px !important;
@@ -674,9 +769,9 @@ md-toast .md-toast-content {
 .tw-login-panel {
   width: min(420px, calc(100vw - 32px));
   padding: 36px 32px 32px;
-  border-radius: 24px;
+  border-radius: 20px;
   border: 1px solid var(--tw-line);
-  background: rgba(16, 24, 40, 0.82);
+  background: var(--tw-bg-elevated);
   box-shadow: var(--tw-shadow);
   backdrop-filter: blur(18px);
 }
@@ -727,7 +822,7 @@ md-progress-linear .md-bar {
 }
 
 md-checkbox .md-icon {
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  border-color: var(--tw-line) !important;
 }
 
 md-checkbox.md-checked .md-icon {
@@ -739,14 +834,14 @@ md-switch.md-checked .md-thumb {
 }
 
 md-switch.md-checked .md-bar {
-  background-color: rgba(240, 180, 41, 0.45) !important;
+  background-color: color-mix(in srgb, var(--tw-accent) 45%, transparent) !important;
 }
 
 md-select .md-select-value,
 md-select-menu md-content,
 md-option {
   color: var(--tw-text) !important;
-  background: #121c30 !important;
+  background: var(--tw-panel) !important;
   font-family: var(--tw-font) !important;
 }
 

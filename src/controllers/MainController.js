@@ -1,5 +1,14 @@
-app.controller('MainCtrl', function ($scope, $rootScope, $http, $window, $mdSidenav, mtRoutes, GeneralService, $timeout) {
+app.controller('MainCtrl', function ($scope, $rootScope, $http, $window, $mdSidenav, mtRoutes, GeneralService, ThemeService, $timeout) {
     $scope.routes = mtRoutes.routes.main;
+
+    ThemeService.init();
+    $scope.twThemeLabel = $rootScope.twThemeLabel;
+    $scope.twThemeIcon = $rootScope.twThemeIcon;
+    $scope.cycleTheme = function () {
+        ThemeService.cycle();
+        $scope.twThemeLabel = $rootScope.twThemeLabel;
+        $scope.twThemeIcon = $rootScope.twThemeIcon;
+    };
 
     $scope.exit = function () {
         $http.post('/api/logout').then(function () {

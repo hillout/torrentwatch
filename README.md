@@ -6,7 +6,7 @@
 
 ## Что изменилось относительно upstream
 
-- Ребрендинг UI: **TorrentWatch** (тёмная тема, IBM Plex Sans)
+- Ребрендинг UI: **TorrentWatch** (светлая/тёмная/system тема, IBM Plex Sans, radar favicon)
 - Трекер **kinozal.guru** вместо устаревшего kinozal.tv
 - Обход Cloudflare через **FlareSolverr** (`FLARESOLVERR_URL`) + кэш `cf_clearance`
 - Скачивание раздач с основного домена (обход 520 на `dl.kinozal.guru`)
