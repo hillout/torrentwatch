@@ -80,7 +80,7 @@ gulp.task('templateCache', function () {
 gulp.task('less', function () {
   return gulp.src(paths.styles)
     .pipe(less())
-    .pipe(concat(pkg.name + '.css'))
+    .pipe(concat('monitorrent.css'))
     .pipe(gulp.dest(path.join(paths.dest, 'styles')));
 });
 
