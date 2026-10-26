@@ -7,7 +7,7 @@ interactions:
       Connection: [keep-alive]
       User-Agent: [python-requests/2.12.4]
     method: GET
-    uri: https://kinozal.tv/details.php?id=1506818
+    uri: https://kinozal.guru/details.php?id=1506818
   response:
     body:
       string: !!binary |
@@ -214,6 +214,6 @@ interactions:
       date: ['Sun, 15 Jan 2017 22:20:51 GMT']
       server: [cloudflare-nginx]
       set-cookie: ['__cfduid=da5b65d1f8fcfcb498666c376f2e0ff0e1484518851; expires=Mon,
-          15-Jan-18 22:20:51 GMT; path=/; domain=.kinozal.tv; HttpOnly']
+          15-Jan-18 22:20:51 GMT; path=/; domain=.kinozal.guru; HttpOnly']
     status: {code: 200, message: OK}
 version: 1

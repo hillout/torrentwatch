@@ -28,7 +28,9 @@ class KinozalTrackerUpgradeTest(UpgradeTestCase):
                                 Column('username', String, primary_key=True),
                                 Column('password', String, primary_key=True),
                                 Column('c_uid', String, nullable=True),
-                                Column('c_pass', String, nullable=True))
+                                Column('c_pass', String, nullable=True),
+                                Column('cf_clearance', String, nullable=True),
+                                Column('cf_user_agent', String, nullable=True))
 
     versions = [
         (KinozalTopic0, UpgradeTestCase.copy(Topic.__table__, m0), KinozalCredentials0),

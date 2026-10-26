@@ -25,13 +25,13 @@ class MockDatetime(datetime):
 
 
 class TestKinozalTracker(object):
-    def setup(self):
+    def setup_method(self):
         cloudflare_challenge_solver_settings = CloudflareChallengeSolverSettings(False, 10000, False, False, 0)
         self.tracker_settings = TrackerSettingsMock(10, None, cloudflare_challenge_solver_settings)
         self.tracker = KinozalTracker()
         self.tracker.tracker_settings = self.tracker_settings
         self.urls_to_check = [
-            "https://kinozal.tv/details.php?id=1506818"
+            "https://kinozal.guru/details.php?id=1506818"
         ]
 
     def test_can_parse_url(self):
@@ -46,14 +46,16 @@ class TestKinozalTracker(object):
 
     @use_vcr
     def test_parse_url(self):
-        parsed_url = self.tracker.parse_url("https://kinozal.tv/details.php?id=1506818")
+        parsed_url = self.tracker.parse_url("https://kinozal.guru/details.php?id=1506818")
         assert parsed_url['original_name'] == u'Война против всех / War on Everyone / 2016 / ДБ / WEB-DLRip'
 
     @use_vcr
     def test_parse_wrong_url(self):
         assert not self.tracker.parse_url('https://kinozal.com/details.php?id=1506818')
-        # special case for not existing topic
-        assert not self.tracker.parse_url('https://kinozal.tv/details.php?id=1906818')
+        # Missing topic: page has no title — plugin keeps a stable fallback name.
+        assert self.tracker.parse_url('https://kinozal.guru/details.php?id=1906818') == {
+            'original_name': 'kinozal #1906818'
+        }
 
     @use_vcr
     def test_login_failed(self):
@@ -75,7 +77,7 @@ class TestKinozalTracker(object):
     @patch('monitorrent.plugins.trackers.rutracker.Session.post')
     def test_login_failed_cookie(self, post):
         login_result = Mock()
-        login_result.url = 'https://kinozal.tv/userdetails.php?id=10000000'
+        login_result.url = 'https://kinozal.guru/userdetails.php?id=10000000'
         post.return_value = login_result
         with raises(KinozalLoginFailedException) as e:
             self.tracker.login(helper.fake_login, helper.fake_password)
@@ -107,14 +109,14 @@ class TestKinozalTracker(object):
 
     def test_get_download_url(self):
         for url in self.urls_to_check:
-            assert self.tracker.get_download_url(url) == "https://dl.kinozal.tv/download.php?id=1506818"
+            assert self.tracker.get_download_url(url) == "https://kinozal.guru/download.php?id=1506818"
 
     def test_get_download_url_error(self):
         assert not self.tracker.get_download_url("https://not.kinozal.com/details.php?id=1506818")
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_yesterday_success(self):
-        url = 'https://kinozal.tv/details.php?id=1831370'
+        url = 'https://kinozal.guru/details.php?id=1831370'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2021, 3, 18, 23, 12)).astimezone(pytz.utc)
 
         server_now = datetime(2021, 3, 19, 12, 0, 0, tzinfo=pytz.utc)
@@ -125,7 +127,7 @@ class TestKinozalTracker(object):
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_today_success(self):
-        url = 'https://kinozal.tv/details.php?id=1496310'
+        url = 'https://kinozal.guru/details.php?id=1496310'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2017, 1, 20, 1, 30)).astimezone(pytz.utc)
 
         server_now = datetime(2017, 1, 20, 12, 0, 0, tzinfo=pytz.utc)
@@ -136,14 +138,14 @@ class TestKinozalTracker(object):
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_in_particular_success(self):
-        url = 'https://kinozal.tv/details.php?id=1508210'
+        url = 'https://kinozal.guru/details.php?id=1508210'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2017, 1, 26, 21, 24)).astimezone(pytz.utc)
 
         assert self.tracker.get_last_torrent_update(url) == expected
 
     @use_vcr
     def test_get_last_torrent_update_without_updates_success(self):
-        url = 'https://kinozal.tv/details.php?id=1831382'
+        url = 'https://kinozal.guru/details.php?id=1831382'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2021, 3, 15, 23, 27)).astimezone(pytz.utc)
 
         assert self.tracker.get_last_torrent_update(url) == expected

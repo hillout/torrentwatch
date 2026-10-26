@@ -17,7 +17,7 @@ from monitorrent.plugins.trackers import TrackerPluginBase, WithCredentialsMixin
 PLUGIN_NAME = 'kinozal.guru'
 KINOZAL_HOST = 'kinozal.guru'
 LEGACY_PLUGIN_NAME = 'kinozal.tv'
-FLARESOLVERR_URL = os.environ.get('FLARESOLVERR_URL', 'http://flaresolverr:8191/v1')
+FLARESOLVERR_URL = os.environ.get('FLARESOLVERR_URL', '')
 
 
 class KinozalCredentials(Base):
@@ -72,7 +72,7 @@ def upgrade(engine, operations_factory):
             operations.add_column(KinozalCredentials.__tablename__,
                                   Column('cf_user_agent', String, nullable=True))
 
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(
             text("UPDATE topics SET type = :new WHERE type = :old"),
             {"new": PLUGIN_NAME, "old": LEGACY_PLUGIN_NAME},
@@ -81,7 +81,6 @@ def upgrade(engine, operations_factory):
             text("UPDATE topics SET url = REPLACE(url, :old_host, :new_host) WHERE url LIKE :pattern"),
             {"old_host": LEGACY_PLUGIN_NAME, "new_host": KINOZAL_HOST, "pattern": "%kinozal.tv%"},
         )
-        conn.commit()
 
 
 def get_current_version(engine):

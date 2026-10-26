@@ -11,7 +11,7 @@ interactions:
       User-Agent:
       - python-requests/2.21.0
     method: GET
-    uri: https://kinozal.tv/details.php?id=1831382
+    uri: https://kinozal.guru/details.php?id=1831382
   response:
     body:
       string: !!binary |
@@ -150,9 +150,9 @@ interactions:
       - cloudflare
       Set-Cookie:
       - __cfduid=d0040c2c8709d336ca7037ffcda2c4c141616155968; expires=Sun, 18-Apr-21
-        12:12:48 GMT; path=/; domain=.kinozal.tv; HttpOnly; SameSite=Lax
+        12:12:48 GMT; path=/; domain=.kinozal.guru; HttpOnly; SameSite=Lax
       - __cf_bm=44a7b3c29aa471bf7d2b09ed8e1f57b1a68e7934-1616155969-1800-AUEOd3M21PTQEqTLLXE/Gq4IeCdjOzSeFhzCcnWOOoYyl/bKyBfK/oIRVrt3wIr8TVwN/WW1N5VxjkOGEfGYhi4=;
-        path=/; expires=Fri, 19-Mar-21 12:42:49 GMT; domain=.kinozal.tv; HttpOnly;
+        path=/; expires=Fri, 19-Mar-21 12:42:49 GMT; domain=.kinozal.guru; HttpOnly;
         SameSite=None
       Transfer-Encoding:
       - chunked

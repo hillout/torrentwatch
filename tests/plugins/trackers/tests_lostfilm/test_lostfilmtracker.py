@@ -197,7 +197,7 @@ class TestLostFilmQuality(object):
 
 
 class TestLostFilmTracker(ReadContentMixin):
-    def setup(self):
+    def setup_method(self):
         cloudflare_challenge_solver_settings = CloudflareChallengeSolverSettings(False, 10000, False, False, 0)
         self.tracker_settings = TrackerSettings(10, None, cloudflare_challenge_solver_settings)
         self.tracker = LostFilmTVTracker(headers=helper.real_headers, cookies=helper.real_cookies)

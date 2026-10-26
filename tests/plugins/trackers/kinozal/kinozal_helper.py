@@ -29,12 +29,12 @@ class KinozalHelper(object):
 
     @classmethod
     def login(cls, login, password):
-        login_url = 'http://kinozal.tv/takelogin.php'
+        login_url = 'http://kinozal.guru/takelogin.php'
         s = Session()
         data = {"username": login, "password": password, "returnto": ""}
         login_result = s.post(login_url, data)
         if "logout.php?hash4u=" not in login_result.content:
-            raise Exception("Can't login to kinozal.tv")
+            raise Exception("Can't login to kinozal.guru")
         c_uid = s.cookies['uid']
         c_pass = s.cookies['pass']
         helper = cls(login, password, c_uid, c_pass)

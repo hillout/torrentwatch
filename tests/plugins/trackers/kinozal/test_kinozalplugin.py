@@ -30,7 +30,7 @@ class KinozalPluginTest(DbTestCase):
         self.plugin = KinozalPlugin()
         self.plugin.init(self.tracker_settings)
         self.urls_to_check = [
-            "https://kinozal.tv/details.php?id=1506818"
+            "https://kinozal.guru/details.php?id=1506818"
         ]
 
     def test_can_parse_url(self):
@@ -46,7 +46,7 @@ class KinozalPluginTest(DbTestCase):
 
     @use_vcr
     def test_parse_url_success(self):
-        parsed_url = self.plugin.parse_url("https://kinozal.tv/details.php?id=1506818")
+        parsed_url = self.plugin.parse_url("https://kinozal.guru/details.php?id=1506818")
         assert parsed_url['original_name'] == u'Война против всех / War on Everyone / 2016 / ДБ / WEB-DLRip'
 
     @use_vcr
@@ -91,16 +91,17 @@ class KinozalPluginTest(DbTestCase):
     def test_prepare_request(self):
         cookies = {'uid': helper.fake_uid, 'pass': helper.fake_pass}
         # noinspection PyUnresolvedReferences
-        with patch.object(self.plugin.tracker, 'get_cookies', result=cookies):
-            url = "https://kinozal.tv/details.php?id=1506818"
-            request = self.plugin._prepare_request(KinozalTopic(url=url))
-            self.assertIsNotNone(request)
-            self.assertEqual(request.headers['referer'], url)
-            self.assertEqual(request.url, 'https://dl.kinozal.tv/download.php?id=1506818')
+        with patch.object(self.plugin.tracker, 'get_cookies', return_value=cookies), \
+                patch.object(self.plugin.tracker, 'ensure_cf_session', return_value=True):
+            url = "https://kinozal.guru/details.php?id=1506818"
+            download_url, kwargs = self.plugin._prepare_request(KinozalTopic(url=url))
+            self.assertEqual(download_url, 'https://kinozal.guru/download.php?id=1506818')
+            self.assertEqual(kwargs['headers']['Referer'], url)
+            self.assertEqual(kwargs['cookies']['uid'], helper.fake_uid)
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_yesterday_success(self):
-        url = 'https://kinozal.tv/details.php?id=1831370'
+        url = 'https://kinozal.guru/details.php?id=1831370'
         topic = KinozalTopic(id=1, url=url, last_torrent_update=datetime(2021, 3, 17, 10, 10, tzinfo=pytz.utc))
         expected = KinozalDateParser.tz_moscow.localize(datetime(2021, 3, 18, 23, 12)).astimezone(pytz.utc)
 
@@ -113,7 +114,7 @@ class KinozalPluginTest(DbTestCase):
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_today_success(self):
-        url = 'https://kinozal.tv/details.php?id=1496310'
+        url = 'https://kinozal.guru/details.php?id=1496310'
         topic = KinozalTopic(id=1, url=url, last_torrent_update=None)
         expected = KinozalDateParser.tz_moscow.localize(datetime(2017, 1, 20, 1, 30)).astimezone(pytz.utc)
 
@@ -126,7 +127,7 @@ class KinozalPluginTest(DbTestCase):
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_in_particular_success(self):
-        url = 'https://kinozal.tv/details.php?id=1508210'
+        url = 'https://kinozal.guru/details.php?id=1508210'
         topic = KinozalTopic(id=1, url=url, last_torrent_update=datetime(2017, 1, 26, 10, 10, tzinfo=pytz.utc))
         expected = KinozalDateParser.tz_moscow.localize(datetime(2017, 1, 26, 21, 24)).astimezone(pytz.utc)
 
@@ -135,7 +136,7 @@ class KinozalPluginTest(DbTestCase):
 
     @use_vcr
     def test_get_last_torrent_update_for_updated_in_particular_not_changed(self):
-        url = 'https://kinozal.tv/details.php?id=1508210'
+        url = 'https://kinozal.guru/details.php?id=1508210'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2017, 1, 26, 21, 24)).astimezone(pytz.utc)
         topic = KinozalTopic(id=1, url=url, last_torrent_update=expected)
 
@@ -144,7 +145,7 @@ class KinozalPluginTest(DbTestCase):
 
     @use_vcr
     def test_get_last_torrent_update_without_updates_success(self):
-        url = 'https://kinozal.tv/details.php?id=1831382'
+        url = 'https://kinozal.guru/details.php?id=1831382'
         expected = KinozalDateParser.tz_moscow.localize(datetime(2021, 3, 15, 23, 27)).astimezone(pytz.utc)
         topic = KinozalTopic(id=1, url=url, last_torrent_update=None)
 
