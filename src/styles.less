@@ -430,11 +430,17 @@ md-radio-group .md-checked .md-ink-ripple {
 }
 
 .mt-settings md-list-item > .md-button ._md-list-item-inner > md-icon {
-  width: 32px;
-  height: 32px;
-  margin-top: 12px;
-  margin-bottom: 12px;
-  margin-right: 24px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+  margin-right: 18px;
+}
+
+.mt-settings md-list-item > .md-button ._md-list-item-inner > md-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* Torrents list — restored + expanded insets */
@@ -726,7 +732,20 @@ md-card md-input-container {
 }
 
 md-icon {
+  color: var(--tw-text-dim) !important;
+}
+
+.mt-settings md-list-item md-icon,
+.mt-list-item md-icon {
+  color: var(--tw-text-dim) !important;
+  opacity: 0.92;
+}
+
+.mt-settings md-list-item:hover md-icon,
+.mt-list-item:hover md-icon,
+.mt-route-toolbar md-icon {
   color: var(--tw-accent) !important;
+  opacity: 1;
 }
 
 /* Inputs */
