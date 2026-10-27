@@ -1,23 +1,24 @@
+# End-user stack: pulls a prebuilt image from GHCR.
+# For a local build from sources, use: docker compose -f docker-compose.build.yml up -d --build
 services:
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
     environment:
       - LOG_LEVEL=info
-      - TZ=Europe/Moscow
+      - TZ=${TZ:-Europe/Moscow}
     restart: unless-stopped
 
   torrentwatch:
-    build: .
-    image: torrentwatch:latest
+    image: ghcr.io/hillout/torrentwatch:latest
     container_name: torrentwatch
     depends_on:
       - flaresolverr
     environment:
       - FLARESOLVERR_URL=http://flaresolverr:8191/v1
-      - TZ=Europe/Moscow
+      - TZ=${TZ:-Europe/Moscow}
     volumes:
       - ./data/monitorrent.db:/var/www/monitorrent/monitorrent.db
     ports:
-      - "6687:6687"
+      - "${TORRENTWATCH_PORT:-6687}:6687"
     restart: unless-stopped

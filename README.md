@@ -30,21 +30,36 @@ Telegram, Pushover, Email, Pushbullet, Pushall.
 
 ## Быстрый старт (Docker Compose)
 
+Готовый образ: [`ghcr.io/hillout/torrentwatch`](https://github.com/hillout/torrentwatch/pkgs/container/torrentwatch)  
+(собирается GitHub Actions на каждый push в `main` и по тегам).
+
 ### Требования
 
 - Docker + Docker Compose
 - ~512 MB RAM (FlareSolverr может потреблять больше при решении CF)
 
-### Установка
+### Установка (готовый образ)
+
+Минимальный вариант — только compose-файл из репозитория:
+
+```bash
+mkdir torrentwatch && cd torrentwatch
+curl -fsSL -o docker-compose.yml \
+  https://raw.githubusercontent.com/hillout/torrentwatch/main/docker-compose.yml
+mkdir -p data
+touch data/monitorrent.db
+
+docker compose pull
+docker compose up -d
+```
+
+Или клонируйте репозиторий и поднимите тот же стек:
 
 ```bash
 git clone https://github.com/hillout/torrentwatch.git
 cd torrentwatch
-mkdir -p data
-# создайте пустой файл БД, если его ещё нет
-touch data/monitorrent.db
-
-docker compose up -d --build
+mkdir -p data && touch data/monitorrent.db
+docker compose up -d
 ```
 
 Откройте в браузере: [http://localhost:6687](http://localhost:6687)
@@ -65,15 +80,27 @@ docker compose up -d --build
 FLARESOLVERR_URL=http://flaresolverr:8191/v1
 ```
 
+Опционально: `TZ`, `TORRENTWATCH_PORT` (по умолчанию `6687`).
+
 ### Обновление
 
 ```bash
-cd torrentwatch
-git pull
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
-База данных в `./data/monitorrent.db` сохраняется между пересборками.
+База данных в `./data/monitorrent.db` сохраняется между обновлениями.
+
+### Локальная сборка из исходников
+
+Для разработки или своих правок используйте `docker-compose.build.yml`:
+
+```bash
+git clone https://github.com/hillout/torrentwatch.git
+cd torrentwatch
+mkdir -p data && touch data/monitorrent.db
+docker compose -f docker-compose.build.yml up -d --build
+```
 
 ---
 
@@ -90,14 +117,14 @@ docker run -d --name flaresolverr \
 docker network create tw-net
 docker network connect tw-net flaresolverr
 
-docker build -t torrentwatch:latest .
+mkdir -p data && touch data/monitorrent.db
 docker run -d --name torrentwatch \
   --network tw-net \
   -e FLARESOLVERR_URL=http://flaresolverr:8191/v1 \
   -p 6687:6687 \
   -v "$PWD/data/monitorrent.db:/var/www/monitorrent/monitorrent.db" \
   --restart unless-stopped \
-  torrentwatch:latest
+  ghcr.io/hillout/torrentwatch:latest
 ```
 
 ---
@@ -156,7 +183,7 @@ npx gulp release  # release zip + dist/
 
 | Переменная          | По умолчанию                         | Описание                    |
 |---------------------|--------------------------------------|-----------------------------|
-| `FLARESOLVERR_URL`  | `http://flaresolverr:8191/v1`        | Endpoint FlareSolverr API   |
+| `FLARESOLVERR_URL`  | _(пусто; в compose задаётся)_        | Endpoint FlareSolverr API   |
 | `TZ`                | `Europe/Moscow` (в compose)          | Часовой пояс контейнера     |
 
 Данные приложения хранятся в SQLite: `monitorrent.db`.
