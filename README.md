@@ -16,7 +16,7 @@
 
 ### Трекеры
 
-LostFilm, Rutor, Free-Torrents, RuTracker, Tapochek, Unionpeer, NNMClub, AniDub, **Kinozal.guru**, HDClub, AniLibria, Toloka и др.
+LostFilm, Rutor, RuTracker, Tapochek, Unionpeer, NNMClub, AniDub, **Kinozal.guru**, HDClub, AniLibria, Toloka и др.
 
 ### Клиенты
 
